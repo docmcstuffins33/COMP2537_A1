@@ -107,7 +107,7 @@ app.post('/submituser', async (req,res) => {
 	await userCollection.insertOne({username: username, email: email, password: hashedPassword});
 	console.log("Inserted user");
     req.session.authenticated = true;
-    req.session.userame = username;
+    req.session.username = username;
 	req.session.email = email;
 	req.session.cookie.maxAge = expireTime;
     res.redirect('/members');
@@ -171,9 +171,43 @@ app.get('/members', (req,res) => {
         res.redirect('/');
     }
     var html = `
-    <h1>Hello, ` + req.session.username +
-   `!</h1><img src='/most_wanted.png' style='width:250px;'>
-    `;
+    <h1>Hello, ` + req.session.username +`!</h1>`;
+    var cat = Math.floor(Math.random() * 10);
+    switch (cat) {
+        case 0:
+            html += `<img src='/5.jpg' style='width:250px;'>`
+            break;
+        case 1:
+            html += `<img src='/6_dollar.jpg' style='width:250px;'>`
+            break;
+        case 2:
+            html += `<img src='/8_13_AM.jpg' style='width:250px;'>`
+            break;
+        case 3:
+            html += `<img src='/amazed.gif' style='width:250px;'>`
+            break;
+        case 4:
+            html += `<img src='/BLEEEGHHH.png' style='width:250px;'>`
+            break;
+        case 5:
+            html += `<img src='/cat_staring.gif' style='width:250px;'>`
+            break;
+        case 6:
+            html += `<img src='/god.png' style='width:250px;'>`
+            break;
+        case 7:
+            html += `<img src='/learn_more.png' style='width:250px;'>`
+            break;
+        case 8:
+            html += `<img src='/most_wanted.png' style='width:250px;'>`
+            break;
+        case 9:
+            html += `<img src='/standing.gif' style='width:250px;'>`
+            break;
+        default:
+            htmp += '<h2>Something went wrong while generating a cat... </h2>'
+            break;
+    }
     res.send(html);
 });
 
