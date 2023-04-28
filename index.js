@@ -215,7 +215,8 @@ app.use(express.static(__dirname + "/public"));
 
 app.get("*", (req, res) => {
     res.status(404);
-    res.send("Page not found - 404");
+    res.send(`<h1>Page not found - 404</h1>
+    <img src='/jincpope.gif' style='width:250px'>`);
 })
 
 app.listen(port, () => {
