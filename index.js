@@ -71,6 +71,7 @@ app.get('/', (req,res) => {
 });
 
 app.get('/signup', (req, res) => {
+
     var html = `
     <h1>Sign Up</h1>
     <form action='/submituser' method='post'>
@@ -80,6 +81,18 @@ app.get('/signup', (req, res) => {
     <button>Submit</button>
     </form>
     `
+    if (req.query.anotherAccount){
+        html += ` <p>There is already another account using that email!</p>`
+    }
+    if (req.query.nameMissing){
+        html += ` <p>Username Missing</p>`
+    }
+    if (req.query.emailMissing){
+        html += ` <p>Email Missing</p>`
+    }
+    if (req.query.passwordMissing){
+        html += ` <p>Password Missing</p>`
+    }
     res.send(html);
 });
 
@@ -98,9 +111,24 @@ app.post('/submituser', async (req,res) => {
 	const validationResult = schema.validate({username, email, password});
 	if (validationResult.error != null) {
 	   console.log(validationResult.error);
-	   res.redirect("/signup");
+       var linkBack = "/signup?";
+       if(username == ''){
+        linkBack += "nameMissing=true&"
+       }
+       if(email == ''){
+        linkBack += "emailMissing=true&"
+       }
+       if(password == ''){
+        linkBack += "passwordMissing=true&"
+       }
+	   res.redirect(linkBack);
 	   return;
    }
+    const result = await userCollection.find({email: email}).project({email: 1, username: 1, password: 1, _id: 1}).toArray();
+    if (result.length == 1) {
+		res.redirect("/signup?anotherAccount=true");
+		return;
+	}
 
     var hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -122,6 +150,18 @@ app.get('/login', (req, res) => {
     <button>Submit</button>
     </form>
     `
+    if (req.query.noAccount){
+        html += ` <p>No account for this email!</p>`
+    }
+    if (req.query.wrongPassword){
+        html += ` <p>Incorrect password for this account</p>`
+    }
+    if (req.query.emailMissing){
+        html += ` <p>Email Missing</p>`
+    }
+    if (req.query.passwordMissing){
+        html += ` <p>Password Missing</p>`
+    }
     res.send(html);
 });
 
@@ -133,15 +173,21 @@ app.post('/loggingin', async (req,res) => {
 	const validationResult = schema.validate(email);
 	if (validationResult.error != null) {
 	   console.log(validationResult.error);
-	   res.redirect("/login");
+	   var linkBack = "/login?";
+       if(email == ''){
+        linkBack += "emailMissing=true&"
+       }
+       if(password == ''){
+        linkBack += "passwordMissing=true&"
+       }
+	   res.redirect(linkBack);
 	   return;
 	}
 
     const result = await userCollection.find({email: email}).project({email: 1, username: 1, password: 1, _id: 1}).toArray();
     console.log(result);
 	if (result.length != 1) {
-		console.log("user not found");
-		res.redirect("/login");
+		res.redirect("/login?noAccount=true");
 		return;
 	}
 	if (await bcrypt.compare(password, result[0].password)) {
@@ -155,8 +201,7 @@ app.post('/loggingin', async (req,res) => {
 		return;
 	}
 	else {
-		console.log("incorrect password");
-		res.redirect("/login");
+		res.redirect("/login?wrongPassword=true");
 		return;
 	}
 });
